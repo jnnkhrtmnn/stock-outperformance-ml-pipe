@@ -1,0 +1,7 @@
+sklearn
+statsmodels
+pandas
+flask
+jupyter
+matplotlib
+gunicorn
