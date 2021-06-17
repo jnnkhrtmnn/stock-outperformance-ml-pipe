@@ -123,3 +123,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# pdf
+*.pdf
+
+# ML runs
+/mlruns
