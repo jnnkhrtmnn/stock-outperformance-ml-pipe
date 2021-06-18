@@ -58,4 +58,14 @@ simple sklearn models, k fr this assessment, in production use may be different 
 
 Transaction costs, i.e. fees, market moving effect, and taxes are not considered
 
+# Assumed for next week, 
 
+
+f1 score with overweight prec, as default action: buy index, less risky, and precision above 50% neccessaryto get outperf in real world
+
+brier score loss, not good for imb data, otherwise liked very much as it uses probas (more information)
+
+
+# use a couple of simple, rather technical features
+#  understand, that you do not really care
+# and my spare time is on a budget at the moment ;)
