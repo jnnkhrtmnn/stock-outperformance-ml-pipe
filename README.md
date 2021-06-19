@@ -69,3 +69,26 @@ brier score loss, not good for imb data, otherwise liked very much as it uses pr
 # use a couple of simple, rather technical features
 #  understand, that you do not really care
 # and my spare time is on a budget at the moment ;)
+
+#use median between high and low, 
+# assuming it is possible to buy for this price at some point
+# 
+
+
+model and data versioning
+
+trading strategy:
+cetrainty of ml decision, outperf or not
+portfolio view as a whole / risk model
+
+overfitting: most important: dont trick yourself!
+proer train (dev), test split
+
+like models with predict proba, as it gives more information than just a label
+-> also important for trading strategy, not assessed here but probably certainty of 
+outperformance higher, if prob is 0.99 than 0.51
+
+
+add in future events like dividend payouts
+
+weekly basis: mon to fri, NOT 7 days, also possible -> more data, but possible overfitting even worse as single days are used more often

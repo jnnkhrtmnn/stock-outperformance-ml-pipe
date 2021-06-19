@@ -161,9 +161,14 @@ with mlflow.start_run():
 
 #%% model validation, stability,...
 
+# To dos:
+# build more features
+# validation scheme: eval metrics, measures taken against overfitting, assess overall model
+# model -> trading strategy
+# update requirements, explain setup
 
 
-#%% stage model for inference service
+#%% store model for inference service
 # I am using joblib here, but usually prefer mlflow with proper setup
 
 

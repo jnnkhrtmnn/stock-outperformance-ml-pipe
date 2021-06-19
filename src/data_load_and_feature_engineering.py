@@ -51,7 +51,7 @@ def get_weekly_performance(dat: pd.DataFrame, col_keys: list):
     calculates weekly performance
     inputs:
         df: dataframe
-        col_key: keys of columns for whih to calc. this
+        col_key: keys of columns for which to calculate this
 
     output:
         pandas df of weekly returns
@@ -105,18 +105,24 @@ def feature_engineering(wk_dat: pd.DataFrame, ticker: str, path):
     wk_dat['stock_ma_4'] =  wk_dat[ticker+'_median_price'].shift(-1).rolling(window=4,
                                                         min_periods=2).mean()
 
-
     wk_dat['stock_std'] =  wk_dat[ticker+'_median_price'].shift(-1).rolling(window=4,
                                                         min_periods=4).std()
+    wk_dat['index_ma_8'] =  wk_dat[ticker+'_median_price'].shift(-1).rolling(window=8,
+                                                        min_periods=4).mean()
 
     wk_dat['index_std'] =  wk_dat[ticker+'_median_price'].shift(-1).rolling(window=4,
                                                         min_periods=4).std()
+    # here no shifting needed, as events can be known before
+    wk_dat['stock_split_bool'] = wk_dat['Stock Splits'].notnull()
 
+    wk_dat['dividends_bool'] = wk_dat['Dividends'].notnull()
 
+    wk_dat['Dividends'].fillna(0, inplace=True)
+    wk_dat['Stock Splits'].fillna(0, inplace=True)
     wk_dat.dropna(inplace=True)
     wk_dat.reset_index(inplace=True)
 
-    wk_dat.to_pickle(path / "wk_dat.pkl")
+    wk_dat.to_pickle(path / 'data'/ 'wk_dat.pkl')
 
     return wk_dat
 
@@ -153,14 +159,16 @@ def load_data_and_engineer_features(root_path):
     ticker_data[ticker+'_median_price'] = ticker_data[['High', 'Low']].median(axis=1)
     benchmark_data[bm_ind+'_median_price'] = benchmark_data[['High', 'Low']].median(axis=1)
 
-    # join data
-    dat = ticker_data[[ticker+'_median_price']].join(benchmark_data[[bm_ind+'_median_price']],
+    # join 
+    ticker_cols = [ticker+'_median_price', 'Dividends', 'Stock Splits']
+    dat = ticker_data[ticker_cols].join(benchmark_data[[bm_ind+'_median_price']], \
                                             how="outer")
 
     # drop where NA/NaN
     dat.dropna(inplace=True)
 
-    wk_dat = get_weekly_performance(dat=dat, col_keys=[ticker+'_median_price', bm_ind+'_median_price'])
+    col_keys = [ticker+'_median_price', bm_ind+'_median_price', 'Dividends', 'Stock Splits']
+    wk_dat = get_weekly_performance(dat=dat, col_keys=col_keys)
 
     # construct target
 
@@ -223,8 +231,7 @@ def ts_train_test_split(X, y, test_size):
 if __name__ == '__main__':
     dir = os.path.dirname(__file__)
     path = Path(dir[:-3])
-    load_data_and_engineer_features(root_path=path)
+    wk_dat = load_data_and_engineer_features(root_path=path)
 
 
-
-# %%
+#%%
