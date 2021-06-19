@@ -14,7 +14,7 @@ from joblib import load, dump
 
 import numpy as np
 import pandas as pd
-
+import random
 import yfinance as yf
 import matplotlib.pyplot as plt
 import datetime
@@ -56,12 +56,7 @@ save_model = config['save_model']
 wk_dat = load_data_and_engineer_features(path)
 
 
-
-
-#%% train test split
-
-
-#%% select features
+#%% traint est split
 x_lst =['perf_diff_shift_1',
        'perf_diff_ma_8', 'perf_diff_ma_4', 'perf_diff_std_4', 'stock_ma_8',
        'stock_ma_4', 'stock_std', 'index_ma_8', 'index_std',
@@ -70,6 +65,9 @@ x_lst =['perf_diff_shift_1',
 
 X_train, X_test, y_train, y_test = ts_train_test_split(wk_dat, test_size, x_lst)
 
+
+random.shuffle(X_test)
+#random.shuffle(y_test)
 
 #%% model metrics and algo choice
 
@@ -112,7 +110,8 @@ tscv = TimeSeriesSplit(n_splits=5)
 
 #%% model training
 
-with mlflow.start_run():
+def run_training():
+    with mlflow.start_run():
 
         rs_cv = RandomizedSearchCV(
             estimator=clf
@@ -159,7 +158,21 @@ with mlflow.start_run():
         # if appropriate DB available, with mlflow model registry
         mlflow.sklearn.log_model(clf, "model")
 
+
+        #%% store model for inference service
+        # I am using joblib here, but usually prefer mlflow with proper setup
+        if save_model:
+            save_path = path / 'models' / 'clf.joblib'
+            #mlflow.sklearn.save_model(clf, path / 'models' / 'clf')
+            dump(clf, save_path) 
+            print('Model saved at: {}'.format(save_path))
+    
+
         mlflow.end_run()
+
+#%% run training
+if __name__ == '__main__':
+    run_training()
 
 
 #%% model validation, stability,...
@@ -171,16 +184,7 @@ with mlflow.start_run():
 # update requirements, explain setup
 
 
-#%% store model for inference service
-# I am using joblib here, but usually prefer mlflow with proper setup
 
-
-if save_model:
-    save_path = path / 'models' / 'clf.joblib'
-    #mlflow.sklearn.save_model(clf, path / 'models' / 'clf')
-    dump(clf, save_path) 
-    print('Model saved at: {}'.format(save_path))
-    
 
 #%% Go to MLflow UI to compare models
 # !mlflow ui

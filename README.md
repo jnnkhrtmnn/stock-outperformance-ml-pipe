@@ -93,4 +93,23 @@ outperformance higher, if prob is 0.99 than 0.51
 
 add in future events like dividend payouts
 
+
+overfitting: use same model / models tructure for similar time series, eg other DAX automotive OEMs
+check best parameter choices, model stability, performance,
+unlikely, that only "works" for DAIMLER
+
+simple model -> more complex model,
+stop, if no improvement
+#
+
+shuffle target, add noise
+
+
+ML: non-linear conditional mean
+oter TS methods better
+In general, I believe that other methods, eg HMM, standard econometric modeling etc
+
+also: for entire test set, no check, if preds actually good
+so failing dramatically
+
 weekly basis: mon to fri, NOT 7 days, also possible -> more data, but possible overfitting even worse as single days are used more often
