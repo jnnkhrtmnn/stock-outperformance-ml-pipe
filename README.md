@@ -74,6 +74,7 @@ brier score loss, not good for imb data, otherwise liked very much as it uses pr
 # assuming it is possible to buy for this price at some point
 # 
 
+other feature selection: in pipeline
 
 model and data versioning
 
@@ -88,6 +89,7 @@ like models with predict proba, as it gives more information than just a label
 -> also important for trading strategy, not assessed here but probably certainty of 
 outperformance higher, if prob is 0.99 than 0.51
 
+# update requirements, explain setup
 
 add in future events like dividend payouts
 

@@ -56,21 +56,20 @@ save_model = config['save_model']
 wk_dat = load_data_and_engineer_features(path)
 
 
-#%% select features
-x_lst =['perf_diff_shift_1'
-       ,'stock_std'
-       ,'index_std'
-       ,'perf_diff_ma_8'
-       ,'perf_diff_ma_4'
-       ,'perf_diff_std_4'
-       ,'stock_ma_8'
-       ,'stock_ma_4']
 
-X, y = feature_select(wk_dat=wk_dat, list_of_features=x_lst)
 
 #%% train test split
 
-X_train, X_test, y_train, y_test = ts_train_test_split(X, y, test_size)
+
+#%% select features
+x_lst =['perf_diff_shift_1',
+       'perf_diff_ma_8', 'perf_diff_ma_4', 'perf_diff_std_4', 'stock_ma_8',
+       'stock_ma_4', 'stock_std', 'index_ma_8', 'index_std',
+       'stock_split_bool', 'dividends_bool']
+
+
+X_train, X_test, y_train, y_test = ts_train_test_split(wk_dat, test_size, x_lst)
+
 
 #%% model metrics and algo choice
 
@@ -79,7 +78,13 @@ from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, reca
 from sklearn.model_selection._split import TimeSeriesSplit
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import VarianceThreshold
 
+clf = Pipeline([
+    ('vt', VarianceThreshold()), 
+    ('rf', RandomForestClassifier())
+    ])
 
 
 def eval_metrics(actual, pred):
@@ -93,15 +98,13 @@ def eval_metrics(actual, pred):
 fbeta_scorer = make_scorer(fbeta_score, beta=0.5)
 
 
-
-clf = RandomForestClassifier(random_state=0)
-
-params = {'n_estimators': [20,50,100,200]
-            #,'max_features': ['auto', 'sqrt']
-            #,'criterion' : ['gini', 'entropy']
-            ,'max_depth': [2,3,4]
-            ,'bootstrap': [True, False]
-            ,'class_weight' : ['balanced'] # class underweight, model might get to conservative otherwise
+params = {'vt__threshold' : [0]
+            ,'rf__n_estimators': [20,50,100,200]
+            ,'rf__max_features': ['auto', 'sqrt']
+            ,'rf__criterion' : ['gini', 'entropy']
+            ,'rf__max_depth': [2,3,4,5]
+            ,'rf__bootstrap': [True, False]
+            ,'rf__class_weight' : ['balanced'] # class underweight, model might get to conservative otherwise
             }
 
 tscv = TimeSeriesSplit(n_splits=5)
@@ -111,7 +114,7 @@ tscv = TimeSeriesSplit(n_splits=5)
 
 with mlflow.start_run():
 
-        gs_cv = RandomizedSearchCV(
+        rs_cv = RandomizedSearchCV(
             estimator=clf
             ,param_distributions=params
             ,scoring=fbeta_scorer #'roc_auc' #'brier_score_loss'#
@@ -120,10 +123,10 @@ with mlflow.start_run():
             ,return_train_score=True
         )
 
-        gs_cv.fit(X_train, y_train)
+        rs_cv.fit(X_train, y_train)
 
 
-        best_params = gs_cv.best_params_
+        best_params = rs_cv.best_params_
 
         clf.set_params(**best_params)
 
@@ -162,7 +165,7 @@ with mlflow.start_run():
 #%% model validation, stability,...
 
 # To dos:
-# build more features
+
 # validation scheme: eval metrics, measures taken against overfitting, assess overall model
 # model -> trading strategy
 # update requirements, explain setup
@@ -188,3 +191,4 @@ if save_model:
 load_path = path / 'models' / 'clf.joblib'
 clf = load(load_path)
 
+#%%

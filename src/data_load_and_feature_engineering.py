@@ -183,41 +183,21 @@ def load_data_and_engineer_features(root_path):
 
 #%% Further functions for feature handling
 
-x_lst =['perf_diff_shift_1'
-       ,'stock_std'
-       ,'index_std'
-       ,'perf_diff_ma_8'
-       ,'perf_diff_ma_4'
-       ,'perf_diff_std_4'
-       ,'stock_ma_8'
-       ,'stock_ma_4']
-
-def feature_select(wk_dat: pd.DataFrame, list_of_features: list):
-    '''
-    Selects features. Here based on a list, but of course other methods could go here
-    (or in any other pipeline, eg sklearn)
-    input: 
-        wk_dat: pandas df of week-based data
-        list_of_features: list of features
-    output: X and y, as in any data science project
-    '''
-
-    X = wk_dat[list_of_features].values
-    y = wk_dat['target'].values
-
-    return X, y
-
 #%%
 
-def ts_train_test_split(X, y, test_size):
+def ts_train_test_split(X_y, test_size, list_of_features):
     '''
-    Custom traint est split for time series
+    Custom traint est split for time series, also selects features to be considered
     inputs:
         X,y: Arrays of X and y
         test_size: float of test size fraction
+        list_of_features: list of features to be considered further
     outputs:
         X_train, X_test, y_train, y_test, y_test arrays
     '''
+    X = X_y[list_of_features].values
+    y = X_y['target'].values
+
     train_index = range(0,int(X.shape[0]*(1-test_size)))
     test_index = range(int(X.shape[0]*(1-test_size)),X.shape[0])
 
