@@ -6,11 +6,11 @@
 
 #%%
 
-
+import os
 import json
 import logging
 from pathlib import Path
-from joblib import load
+from joblib import load, dump
 #from flask import Flask, request, jsonify
 
 import numpy as np
@@ -28,10 +28,11 @@ import mlflow.sklearn
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-#%% set training params
+#%%
 
+dir = os.path.dirname(__file__)
 
-path = Path('C:/Users/janni/Desktop/lehnerinvest')
+path = Path(dir)
 
 with open(path / 'config.json') as f:
   config = json.load(f)
@@ -46,6 +47,7 @@ outp_thresh = config['outperformance_threshold']
 
 test_size = config['test_split_size']
 
+save_model = config['save_model']
 
 #%% get data
 
@@ -79,13 +81,9 @@ dat = ticker_data[[ticker+'_median_price']].join(benchmark_data[[bm_ind+'_median
 
 
 
-# drop whee NA/NaN
+# drop where NA/NaN
 dat.dropna(inplace=True)
 
-# get weeks as well
-#dat['date'] = dat.index
-#dat = dat.join(dat.index.isocalendar())
-#dat.set_index(['year','week', 'day'], inplace=True)
 
 # Task: Weekly outperformance
 def get_weekly_performance(df, col_keys):
@@ -263,14 +261,24 @@ with mlflow.start_run():
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
         # log model, could also be stored with joblib or, 
-        # if DB available, with mlflo model registry
+        # if appropriate DB available, with mlflow model registry
         mlflow.sklearn.log_model(clf, "model")
 
         mlflow.end_run()
 
 
-#%% model validation, stability,...
+#%% stage model for inference service
+# I am using joblib here, but usually prefer mlflow with proper setup
 
+
+if save_model:
+    save_path = path / 'models' / 'clf.joblib'
+    #mlflow.sklearn.save_model(clf, path / 'models' / 'clf')
+    dump(clf, save_path) 
+    print('Model saved at: {}'.format(save_path))
+    
+
+#%% model validation, stability,...
 
 
 
@@ -278,16 +286,8 @@ with mlflow.start_run():
 # !mlflow ui
 # view it at http://localhost:5000.
 
-#%%
-
-
-
 #%% load model
 
-#mlflow.sklearn.save_model(clf, path / 'models' / 'clf'+)
+load_path = path / 'models' / 'clf.joblib'
+clf = load(load_path)
 
-#logged_model = 'file:///C:/Users/janni/Desktop/lehnerinvest/mlruns/0/f604896aa7ad4687b5b722d5dffbb967/artifacts/model'
-
-#clf = mlflow.sklearn.load_model(logged_model)
-
-# %%
