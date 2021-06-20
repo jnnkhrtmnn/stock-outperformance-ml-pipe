@@ -1,4 +1,4 @@
-# Deployable Machine Learning App Blueprint
+# Predict stock outperformance of benchmark index
 Simple blueprint for machine learning projects using a prediction API run via Flask app and Docker.
 
 ## Conda envs
