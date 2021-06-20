@@ -93,4 +93,4 @@ activated with
 `conda activate blueprint`,\
 then `cd` to the root folder of your project and installed all requirements with 
 `pip install -r requirements.txt`.
-Other environement shou also work as long as the runtime is the same as well as all mentioned dependencies are installed.
+Other environment managers should also work as long as the runtime is the same and all mentioned dependencies are installed.
