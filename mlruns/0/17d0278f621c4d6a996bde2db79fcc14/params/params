@@ -1,0 +1,1 @@
+{'vt__threshold': 0, 'rf__n_estimators': 100, 'rf__max_features': 'sqrt', 'rf__max_depth': 2, 'rf__criterion': 'entropy', 'rf__class_weight': 'balanced', 'rf__bootstrap': False}

@@ -2,7 +2,7 @@ artifact_uri: file:///C:/Users/janni/Desktop/lehnerinvest/mlruns/0/737554da5ce04
 end_time: 1624170991925
 entry_point_name: ''
 experiment_id: '0'
-lifecycle_stage: active
+lifecycle_stage: deleted
 name: ''
 run_id: 737554da5ce04621904001adde2c2e55
 run_uuid: 737554da5ce04621904001adde2c2e55

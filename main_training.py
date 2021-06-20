@@ -67,7 +67,7 @@ X_train, X_test, y_train, y_test = ts_train_test_split(wk_dat, test_size, x_lst)
 
 
 #random.shuffle(y_train)
-#random.shuffle(y_test)
+
 
 #%% model metrics and algo choice
 
@@ -108,8 +108,9 @@ params = {'vt__threshold' : [0]
 tscv = TimeSeriesSplit(n_splits=5)
 
 
-def run_training(comment=''):
-    with mlflow.start_run():
+def run_training(run_name=''):
+
+    with mlflow.start_run(run_name = run_name):
 
         rs_cv = RandomizedSearchCV(
             estimator=clf
@@ -135,13 +136,13 @@ def run_training(comment=''):
         (acc, roc_auc, prec, rec, bss) = eval_metrics(y_test, preds)
         (t_acc, t_roc_auc, t_prec, t_rec, t_bss) = eval_metrics(y_train, t_preds)
 
+        print(" Run name: %s" % run_name)
         print("  Accuracy: %s" % acc)
         print("  ROC AUC: %s" % roc_auc)
         print("  Precision: %s" % prec)
         print("  Recall: %s" % rec)
         print("  Brier score loss: %s" % bss)
 
-        mlflow.log_param("comment", comment)
         mlflow.log_param("stock", ticker)
         mlflow.log_param("benchmark", bm_ind)
         mlflow.log_param("outperformance_threshold", outp_thresh)
@@ -188,7 +189,7 @@ def run_training(comment=''):
 
 #%% run training
 if __name__ == '__main__':
-    run_training('')
+    run_training('with shuffled y_train, so no reasonable output')
 
 
 
@@ -203,3 +204,5 @@ load_path = path / 'models' / 'clf.joblib'
 clf = load(load_path)
 
 #%%
+# 
+# 
