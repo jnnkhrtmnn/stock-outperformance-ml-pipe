@@ -1,5 +1,5 @@
 # Predict stock outperformance of benchmark index
-Simple machine learning pipeline for building a model that predicts outperfermance of a given stock to a benchmark index.
+Simple machine learning pipeline for building a model that predicts outperformance of a given stock to a benchmark index.
 
 
 ## Approach
@@ -11,10 +11,10 @@ These parameters (stock, index, x% outperformance) can be set in the configurati
 
 
 ### Data
-The data is downloaded via API from yahoo finance and based on daily ticker information.
+The data is downloaded from yahoo finance using their Python API and based on daily ticker information.
 I did not put any effort into which stock or index to pick, and hence consider this out of scope for now.
 
-For most parts I have been using the DAX `^GDAXI` performance index and DAIMLER  `DAI.DE` as stock and an outperformance threshold of 2%.
+For most parts I have been using the DAX `^GDAXI` performance index, DAIMLER  `DAI.DE` as stock and an outperformance threshold of 2%.
 
 
 ### Target variable definition & feature engineering
@@ -44,7 +44,7 @@ At the moment, feature selection is only implemented as dropping features withou
 I implemented a scikit-learn pipeline for some exemplary hyperparameter tuning on the training set. I did not spend much time on this part and went with standard best practice for machine learning solutions (randomized search on expanding time series splits of the train set). Then, a model with the identifiedbest parameters is trained on the entire training setand used for predictions on the test set for performance evaluation. I am using the `predict_proba` function, as this gves me far more information than just labels. For a trading strategy, this could also imply the level of certainity for the advised decision.  
 To train a model, run `main_training.py` in the root folder of the project.
 This model and key parameters and metrics are logged to mlflow.
-AsI am not having a SQL-database on my laptop, model registration is not as convenient as it usually iswith MLflow and I am storing the model with joblib as well (and by model I mean the sklearn pipeline).
+AsI am not having a SQL-database on my laptop, model registration is not as convenient as it usually is with MLflow and I am storing the model with joblib as well (and by model I mean the sklearn pipeline).
 
 
 ## Evaluation
@@ -54,12 +54,12 @@ For evaluation I am using the MLflow tracking service. The UI can be started by 
 There you can compare different models or model runs, as in this snapshot:
 ![Image of Yaktocat](mlruns/comp_runs.PNG)
 
-In particular, I wanted to look into overfitting. The most important aspect here, I believe, is not any technical metric, but to make sure that you are not tricking yourself by implementing knowledge you can only have in hindsight. An example would be to make changes on hyperparameters after looking at the test set performance metrics (In that regard I am being a poor rolemodel in this assignment, comparing models on test set metrics).
+In particular, I wanted to look into overfitting. The most important aspect here, in my opinion, is not any technical metric, but to make sure that you are not tricking yourself by implementing knowledge you can only have in hindsight. An example would be to make changes on hyperparameters after looking at the test set performance metrics (In that regard I am being a poor rolemodel in this assignment, comparing models on test set metrics).
 
 The name of each run indicates what I have varied in each run.
 First, I have used the pipeline as-is as my best-guess model. 
 Here, I am mainly accessing precision and recall. I selected a model, that scores well on fbeta with an overweight on precision (beta=0.5), as I believe that this metric is mre important for this use case. The default action would probably be to buy the index, as it is less risky compared to a single stock.
-So precision, and hence the expectation of actually outperforming the index, needs to be quite high so that it is worth the risk.
+So, precision, and hence the expectation of actually outperforming the index, needs to be quite high so that it is worth the risk.
 I also like looking at the brier score because it takes the predicted pobabilites into account and not just the labels.
 Regarding overfitting, you can see a gap between training and test set  metrics, which is an indication of overfitting.
 
@@ -83,7 +83,7 @@ From a business and data science view, further checks for assumptions, concept d
 In addition, the certainity of machine learning predictions has to be assessed. 
 Also, correlations within the entire portfolio and corresponding risks have to be checked. 
 
-On the technical side, an inference (micro)service as outlined in my `ml-blueprint-arch` repository could be useful. This would also include e.g. automatic checks for dividend payout dates, as the are not used as a lagged feature n the model and hence have to be known beforehand.
+On the technical side, an inference (micro-)service as outlined in my `ml-blueprint-arch` repository could be useful. This would also include e.g. automatic checks for dividend payout dates, as the are not used as a lagged feature n the model and hence have to be known beforehand.
 Additionally, model versioning could be refined and data versioning is also recommended in production use.
 
 ## Setup & environment
