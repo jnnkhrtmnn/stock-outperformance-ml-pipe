@@ -60,7 +60,7 @@ The name of each run indicates what I have varied in each run.
 First, I have used the pipeline as-is as my best-guess model. 
 Here, I am mainly accessing precision and recall. I selected a model, that scores well on fbeta with an overweight on precision (beta=0.5), as I believe that this metric is mre important for this use case. The default action would probably be to buy the index, as it is less risky compared to a single stock.
 So, precision, and hence the expectation of actually outperforming the index, needs to be quite high so that it is worth the risk.
-I also like looking at the brier score because it takes the predicted pobabilites into account and not just the labels.
+I also like looking at the brier score because it takes the predicted probabilites into account and not just the labels.
 Regarding overfitting, you can see a gap between training and test set  metrics, which is an indication of overfitting.
 
 To apporach this issue, I reduced the maximum depth of the trees in the second run.
