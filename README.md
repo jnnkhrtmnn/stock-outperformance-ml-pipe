@@ -14,7 +14,7 @@ These parameters (stock, index, x% outperformance) can be set in the configurati
 The data is downloaded via API from yahoo finance and based on daily ticker information.
 I did not put any effort into which stock or index to pick, and hence consider this out of scope for now.
 
-For most parts I have been using the DAX `^GDAXI` performance index and DAIMLER  `DAI.DE` as stock.
+For most parts I have been using the DAX `^GDAXI` performance index and DAIMLER  `DAI.DE` as stock and an outperformance threshold of 2%.
 
 
 ### Target variable definition & feature engineering
@@ -49,53 +49,42 @@ AsI am not having a SQL-database on my laptop, model registration is not as conv
 
 ## Evaluation
 
-For evaluation I am using the MLflow tracking service. The UI can be started by running `mlflow ui` in a python terminal or `!mlflow ui` in a interactive ipyhton session, then open the provided address in your browser.
+For evaluation I am using the MLflow tracking service. The UI can be started by running `mlflow ui` in a python terminal or `!mlflow ui` in an interactive ipyhton session, then open the provided address in your browser.
 
-There you can compare different models or model runs, as below:
+There you can compare different models or model runs, as in this snapshot:
 ![Image of Yaktocat](mlruns/comp_runs.PNG)
 
+In particular, I wanted to look into overfitting. The most important aspect here, I believe, is not any technical metric, but to make sure that you are not tricking yourself by implementing knowledge you can only have in hindsight. An example would be to make changes on hyperparameters after looking at the test set performance metrics (In that regard I am being a poor rolemodel in this assignment, comparing models on test set metrics).
 
+The name of each run indicates what I have varied in each run.
+First, I have used the pipeline as-is as my best-guess model. 
+Here, I am mainly accessing precision and recall. I selected a model, that scores well on fbeta with an overweight on precision (beta=0.5), as I believe that this metric is mre important for this use case. The default action would probably be to buy the index, as it is less risky compared to a single stock.
+So precision, and hence the expectation of actually outperforming the index, needs to be quite high so that it is worth the risk.
+I also like looking at the brier score because it takes the predicted pobabilites into account and not just the labels.
+Regarding overfitting, you can see a gap between training and test set  metrics, which is an indication of overfitting.
 
-#### validation scheme: eval metrics, measures taken against overfitting, assess overall model
+To apporach this issue, I reduced the maximum depth of the trees in the second run.
+Here you can see, that training traing and test set metrics are overall better aligned, whereas the overall performance on the test set does not really look worse. Hence I would prefer this model to the first on. 
 
-f1 score with overweight prec, as default action: buy index, less risky, and precision above 50% neccessaryto get outperf in real world
+To get a better understanding of whether I can trust the model based on these runs, I shuffled the training data labels, to have a complete random model, which should exhibit zero information, as a reference.
+This model scores drastically worse on all metrics. So the first two models may be not entirely useless.
 
-brier score loss, not good for imb data, otherwise liked very much as it uses probas (more information)
+Lastly, I have built model with the same specifiations for a similar time series (`BMW.DE`) to see if this model in general is applicable fr this type of time series. You could also use a model entirely trained on `DAI.DE` data for this, if you have reason to believe (what I do not have in this case) that it will work for similar time series.
+Assessing the performance, this model scoressimilar to the first two ones. This could be an indication of the strategy/features used may work.
 
-overfitting: most important: dont trick yourself!
-proer train (dev), test split
-
-overfitting: use same model / models tructure for similar time series, eg other DAX automotive OEMs
-check best parameter choices, model stability, performance,
-unlikely, that only "works" for DAIMLER
-
-simple model -> more complex model,
-stop, if no improvement
-#
-
-shuffle target, add noise
+Overall, for evey model the precision is below 50 %, so that you should expect not meeting the desired outperformance in the majority of weeks. If the outperformance threshold is set reasonably, then I would not use a trading strategy based on these results.
 
 
 ## Going forward
 
-then inferenceservice for use as trading strategy
-add add checks for assumptions, concept drift etc
-add in future events like dividend payouts
+To translate this into a trading strategy, further technical and business issues need to be addressed.
 
-also: for entire test set, no check, if preds actually good
-so failing dramatically
+From a business and data science view, further checks for assumptions, concept drift, etc. have to be implemented. At the moment the model doesnot even check for the entire test set length whether it is performing as good as expected!
+In addition, the certainity of machine learning predictions has to be assessed. 
+Also, correlations within the entire portfolio and corresponding risks have to be checked. 
 
-
-model and data versioning
-
-trading strategy:
-cetrainty of ml decision, outperf or not
-portfolio view as a whole / risk model
-like models with predict proba, as it gives more information than just a label
-
-
-technical side: see blueprint
-
+On the technical side, an inference (micro)service as outlined in my `ml-blueprint-arch` repository could be useful. This would also include e.g. automatic checks for dividend payout dates, as the are not used as a lagged feature n the model and hence have to be known beforehand.
+Additionally, model versioning could be refined and data versioning is also recommended in production use.
 
 ## Setup & environment
 For this project I have been using a conda environment, specified as
