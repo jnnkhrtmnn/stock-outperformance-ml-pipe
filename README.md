@@ -126,4 +126,5 @@ weekly basis: mon to fri, NOT 7 days, also possible -> more data, but possible o
 # validation scheme: eval metrics, measures taken against overfitting, assess overall model
 # model -> trading strategy
 
-[Contribution guidelines for this project](mlruns/comp_runs.png)
+
+![Image of Yaktocat](hmlruns/comp_runs.png)
