@@ -84,7 +84,7 @@ In addition, the certainity of machine learning predictions has to be assessed.
 Also, correlations within the entire portfolio and corresponding risks have to be checked. 
 
 On the technical side, an inference (micro-)service as outlined in my `ml-blueprint-arch` repository could be useful. This would also include e.g. automatic checks for dividend payout dates, as the are not used as a lagged feature n the model and hence have to be known beforehand.
-Additionally, model versioning could be refined and data versioning is also recommended in production use.
+Additionally, the model versioning could be refined with e.g. stages and a proper model registry. 
 
 ## Setup & environment
 For this project I have been using a conda environment, specified as
