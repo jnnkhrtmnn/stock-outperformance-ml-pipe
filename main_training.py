@@ -27,7 +27,7 @@ import mlflow.sklearn
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-
+os.environ["GIT_PYTHON_REFRESH"] = "quiet"
 
 from src.data_load_and_feature_engineering import *
 
@@ -56,7 +56,7 @@ save_model = config['save_model']
 wk_dat = load_data_and_engineer_features(path)
 
 
-#%% traint est split
+#%% train test split
 x_lst =['perf_diff_shift_1',
        'perf_diff_ma_8', 'perf_diff_ma_4', 'perf_diff_std_4', 'stock_ma_8',
        'stock_ma_4', 'stock_std', 'index_ma_8', 'index_std',
@@ -66,7 +66,7 @@ x_lst =['perf_diff_shift_1',
 X_train, X_test, y_train, y_test = ts_train_test_split(wk_dat, test_size, x_lst)
 
 
-random.shuffle(X_test)
+#random.shuffle(y_train)
 #random.shuffle(y_test)
 
 #%% model metrics and algo choice
@@ -100,7 +100,7 @@ params = {'vt__threshold' : [0]
             ,'rf__n_estimators': [20,50,100,200]
             ,'rf__max_features': ['auto', 'sqrt']
             ,'rf__criterion' : ['gini', 'entropy']
-            ,'rf__max_depth': [2,3,4,5]
+            ,'rf__max_depth': [2,3,4,5] #[2]
             ,'rf__bootstrap': [True, False]
             ,'rf__class_weight' : ['balanced'] # class underweight, model might get to conservative otherwise
             }
@@ -108,9 +108,7 @@ params = {'vt__threshold' : [0]
 tscv = TimeSeriesSplit(n_splits=5)
 
 
-#%% model training
-
-def run_training():
+def run_training(comment=''):
     with mlflow.start_run():
 
         rs_cv = RandomizedSearchCV(
@@ -132,8 +130,10 @@ def run_training():
         clf.fit(X_train, y_train)
 
         preds = clf.predict_proba(X_test)[:,1]
+        t_preds = clf.predict_proba(X_train)[:,1]
         
         (acc, roc_auc, prec, rec, bss) = eval_metrics(y_test, preds)
+        (t_acc, t_roc_auc, t_prec, t_rec, t_bss) = eval_metrics(y_train, t_preds)
 
         print("  Accuracy: %s" % acc)
         print("  ROC AUC: %s" % roc_auc)
@@ -141,9 +141,18 @@ def run_training():
         print("  Recall: %s" % rec)
         print("  Brier score loss: %s" % bss)
 
+        mlflow.log_param("comment", comment)
+        mlflow.log_param("stock", ticker)
+        mlflow.log_param("benchmark", bm_ind)
+        mlflow.log_param("outperformance_threshold", outp_thresh)
+
+        
         mlflow.log_param("X_train_shape", X_train.shape)
+        mlflow.log_param("X_test_shape", X_test.shape)
         mlflow.log_param("y_train_mean", np.mean(y_train))
         mlflow.log_param("y_test_mean", np.mean(y_test))
+        mlflow.log_param("params", best_params)
+
         mlflow.log_metric("acc", acc)
         mlflow.log_metric("roc_auc", roc_auc)
         mlflow.log_metric("prec", prec)
@@ -152,7 +161,14 @@ def run_training():
         mlflow.log_metric("pred as outperformance", np.sum(np.array(preds) > 0.5))
         mlflow.log_metric("pred as underperformance", np.sum(np.array(preds) <= 0.5))
 
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+
+        mlflow.log_metric("train_acc", t_acc)
+        mlflow.log_metric("train_roc_auc", t_roc_auc)
+        mlflow.log_metric("train_prec", t_prec)
+        mlflow.log_metric("train_recall", t_rec)
+        mlflow.log_metric("train_bss", t_bss)
+        mlflow.log_metric("train_pred as outperformance", np.sum(np.array(t_preds) > 0.5))
+        mlflow.log_metric("train_pred as underperformance", np.sum(np.array(t_preds) <= 0.5))
 
         # log model, could also be stored with joblib or, 
         # if appropriate DB available, with mlflow model registry
@@ -172,22 +188,13 @@ def run_training():
 
 #%% run training
 if __name__ == '__main__':
-    run_training()
-
-
-#%% model validation, stability,...
-
-# To dos:
-
-# validation scheme: eval metrics, measures taken against overfitting, assess overall model
-# model -> trading strategy
-# update requirements, explain setup
+    run_training('')
 
 
 
 
 #%% Go to MLflow UI to compare models
-# !mlflow ui
+# !mlflow ui in ipython or mlflow in terminal
 # view it at http://localhost:5000.
 
 #%% load model, if needed

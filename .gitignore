@@ -127,8 +127,6 @@ dmypy.json
 # pdf
 *.pdf
 
-# ML runs
-/mlruns
 
 # VS
 /.vscode

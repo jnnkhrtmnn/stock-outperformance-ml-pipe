@@ -112,4 +112,16 @@ In general, I believe that other methods, eg HMM, standard econometric modeling 
 also: for entire test set, no check, if preds actually good
 so failing dramatically
 
+
+Conda env
+Python 3.8.10, dep. in requirements.txt (pip freeze, using jupyter ipy kernel, so could be slimmer)
+
 weekly basis: mon to fri, NOT 7 days, also possible -> more data, but possible overfitting even worse as single days are used more often
+
+
+#%% model validation, stability,...
+
+# To dos:
+
+# validation scheme: eval metrics, measures taken against overfitting, assess overall model
+# model -> trading strategy
