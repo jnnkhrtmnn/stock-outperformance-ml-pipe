@@ -1,53 +1,49 @@
 # Predict stock outperformance of benchmark index
-Simple blueprint for machine learning projects using a prediction API run via Flask app and Docker.
-
-## Conda envs
-Firt, create an environment with
-`conda create -n blueprint python=3.8`,\
-activate the environment using
-`conda activate blueprint`,\
-then `cd` to the root folder of your project and install all requirements with 
-`conda install -r requirements.txt`.
-
-## Data genertion
-In the same cd execute `python src/generate_data.py` to generate some artificial data.
+Simple machine learning pipeline for building a model that predicts outperfermance of a given stock to a benchmark index.
 
 
-## DA
-There is also a `jupyter notebook` for some EDA.
+## Approach
 
-## Model training
-Run `python src/train.py` in the project root directory.
+### Refinement of task
+The aim is to predict whether a particular stock will outperform an associated market index on a weekly basis by a configurable amount of x% (I implemented this as percentage points).
 
-
-## Run Flask App
-To run the app, simply execute `python app.py`.
-
-## Docker
-Added a dockerfile.
-The image can be built by running 
-`docker build . -t mlblueprintarch:v1`.
-To start the container just run `docker run -p 5000:5000 mlblueprintarch:v1`.
+These parameters (stock, index, x% outperformance) can be set in the configuration file `config.json`. 
 
 
-## API tests
-Test the APIs by sending the stored POST requests (either to docker app or flask app) using POSTMAN
+### Data
+The data is downloaded via API from yahoo finance and based on daily ticker information.
+I did not put any effort into which stock or index to pick, and hence consider this out of scope for now.
+
+For most parts I have been using the DAX `^GDAXI` performance index and DAIMLER  `DAI.DE`as stock.
 
 
+### Target variable definition & feature engineering
 
-##Ideas
-
-
-Any index, so maybe DAX; does not matter really
-weekly prob scores of outperformance -> binary classification, outperfom by x percent or not
-
-A particular stock: to be picked beforehand, not neccesserilay methodic itself
+#### Target variable
+Instead of going for a regression approach, I decided to model this as a binary classification taskwith the target being outperformance by x% (`True`) or not (`False`). This is more closely aligned with a potential decision that may be made based on the models output: To overweigh this particular stock or not in the portfolio.
+To calculate this in the training data, I picked the median between daily highs and lows of the stock price, assuming that this will be a price at which it is possible to buy or sell the stock, which may not be the case when only closing prices are considered. I did not consider any transaction costs such as potential fees, taxes or market moving effects. 
+Returns are then calculated on a weekly basis, i.e. Monday to Friday. You could also do this as a 7-days difference, but that may make overfitting even more likely as many data points in the training data would overlap.
 
 
-then inferenceservice for use as trading strategy
-add add checks for assumptions, concept drift etc
+#### Features
+I presumed a careful (pre-)selection of potential features is out of scope for now (+ my spare time is on a budget at the moment...).
+The features I engineered resemble a momentum based trading strategy and hence are rolling means and standard deviationds of stock prices, index "prices", and their differences. I also added some boolean features indiciting if a stock splitor dividend payment happens during the period.
 
-no twds "How I use an LSTM for stock picking" article, using past daily stock prices
+### Data Analysis
+I would typically do some data analysis before building a model. As I am not expecting to build a reasonable model here, I skipped this step. Typically, i would also choose a model, or a selection of models to consider for the task based on the analysis. Here, I simply opted for a random forest.
+
+
+### Modeling
+
+
+data splits
+
+I implemented a sklearn pipeline for some exemplary hyperparameter tuning on the training set and then evaluation of the performance on the test set.
+
+At the moment, feature selection is only implemented as dropping features without any variance, but in a real project this is where I would implement it.
+
+any model really,
+
 
 model tuning and hpyerparameter search: consider is solved task, OOS
 
@@ -55,44 +51,23 @@ serialize models, use mlflow
 
 simple sklearn models, k fr this assessment, in production use may be different due to limited retraining abilities
 
+like models with predict proba, as it gives more information than just a label
+-> also important for trading strategy, not assessed here but probably certainty of 
+outperformance higher, if prob is 0.99 than 0.51
 
-Transaction costs, i.e. fees, market moving effect, and taxes are not considered
 
-# Assumed for next week, 
+## Evaluation
 
+
+#### validation scheme: eval metrics, measures taken against overfitting, assess overall model
+![Image of Yaktocat](mlruns/comp_runs.PNG)
 
 f1 score with overweight prec, as default action: buy index, less risky, and precision above 50% neccessaryto get outperf in real world
 
 brier score loss, not good for imb data, otherwise liked very much as it uses probas (more information)
 
-
-# use a couple of simple, rather technical features
-#  understand, that you do not really care
-# and my spare time is on a budget at the moment ;)
-
-#use median between high and low, 
-# assuming it is possible to buy for this price at some point
-# 
-
-other feature selection: in pipeline
-
-model and data versioning
-
-trading strategy:
-cetrainty of ml decision, outperf or not
-portfolio view as a whole / risk model
-
 overfitting: most important: dont trick yourself!
 proer train (dev), test split
-
-like models with predict proba, as it gives more information than just a label
--> also important for trading strategy, not assessed here but probably certainty of 
-outperformance higher, if prob is 0.99 than 0.51
-
-# update requirements, explain setup
-
-add in future events like dividend payouts
-
 
 overfitting: use same model / models tructure for similar time series, eg other DAX automotive OEMs
 check best parameter choices, model stability, performance,
@@ -113,18 +88,28 @@ also: for entire test set, no check, if preds actually good
 so failing dramatically
 
 
-Conda env
-Python 3.8.10, dep. in requirements.txt (pip freeze, using jupyter ipy kernel, so could be slimmer)
+## Going forward
+#### model -> trading strategy
 
-weekly basis: mon to fri, NOT 7 days, also possible -> more data, but possible overfitting even worse as single days are used more often
+then inferenceservice for use as trading strategy
+add add checks for assumptions, concept drift etc
+add in future events like dividend payouts
+
+model and data versioning
+
+trading strategy:
+cetrainty of ml decision, outperf or not
+portfolio view as a whole / risk model
 
 
-#%% model validation, stability,...
-
-# To dos:
-
-# validation scheme: eval metrics, measures taken against overfitting, assess overall model
-# model -> trading strategy
+technical side: see blueprint
 
 
-![Image of Yaktocat](mlruns/comp_runs.PNG)
+## Setup & environment
+For this project I have been using a conda environment, specified as
+`conda create -n example_env python=3.8.10`,\
+activated with
+`conda activate blueprint`,\
+then `cd` to the root folder of your project and installed all requirements with 
+`pip install -r requirements.txt`.
+Other environement shou also work as long as the runtime is the same as well as all mentioned dependencies are installed.
