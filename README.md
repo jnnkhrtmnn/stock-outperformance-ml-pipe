@@ -127,4 +127,4 @@ weekly basis: mon to fri, NOT 7 days, also possible -> more data, but possible o
 # model -> trading strategy
 
 
-![Image of Yaktocat](hmlruns/comp_runs.png)
+![Image of Yaktocat](mlruns/comp_runs.PNG)
